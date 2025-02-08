@@ -37,6 +37,7 @@
 
 // Variáveis globais
 static volatile uint32_t last_time = 0; // Armazena o tempo do último evento (em microssegundos)
+static volatile int contador = 0;
 
 bool led_buffer[10][NUM_PIXELS] = {
     {
@@ -139,7 +140,7 @@ void set_one_led(uint8_t r, uint8_t g, uint8_t b)
     // Define todos os LEDs com a cor especificada
     for (int i = 0; i < NUM_PIXELS; i++)
     {
-        if (led_buffer[0 /*variavel do arrey do buffer*/][i])
+        if (led_buffer[contador /*variavel do arrey do buffer*/][i])
         {
             put_pixel(color); // Liga o LED com um no buffer
         }
@@ -232,23 +233,22 @@ int main()
     while (true)
     {
         char c;
-        cor = !cor;
-        // Atualiza o conteúdo do display com animações
-        ssd1306_fill(&ssd, !cor);                           // Limpa o display
-        ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor);       // Desenha um retângulo
-        ssd1306_draw_string(&ssd, "abcdefghijklmn", 8, 10); // Desenha uma string
-        ssd1306_draw_string(&ssd, "opqrstuvwxyz", 20, 30);   // Desenha uma string
-        ssd1306_draw_string(&ssd, "PROF WILTON", 15, 48);   // Desenha uma string
-        ssd1306_send_data(&ssd);                            // Atualiza o display
-
-        sleep_ms(1000);
         if (stdio_usb_connected())
         { // Certifica-se de que o USB está conectado
 
             if (scanf("%c", &c) == 1)
             { // Lê caractere da entrada padrão
                 printf("Recebido: '%c'\n", c);
-
+                cor = !cor;
+                // Atualiza o conteúdo do display com animações
+                ssd1306_fill(&ssd, !cor);                           // Limpa o display
+                ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor);       // Desenha um retângulo
+                ssd1306_draw_string(&ssd, &c, 20, 30);  // Desenha uma string
+                ssd1306_send_data(&ssd);
+                if(c >= 0 && c <= 9){
+                    contador = c;
+                    set_one_led(led_r, led_g, led_b);
+                }
                 switch (c)
                 {
                     // Caso o caractere recebido seja 'r' será lido o estado do led vermelho
