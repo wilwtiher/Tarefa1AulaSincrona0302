@@ -31,7 +31,7 @@ static volatile int contador = 0;
 bool cor = true;
 bool Verde = false;
 bool Azul = false;
-
+char c = ' ';
 bool led_buffer[10][NUM_PIXELS] = {
     {
         // 0 invertido verticalmente:
@@ -159,10 +159,24 @@ void gpio_irq_handler(uint gpio, uint32_t events)
         last_time = current_time;                                     // Atualiza o tempo do último evento
         if (gpio == botao_pinA)
         {
-            gpio_put(led_GREEN, !led_GREEN);
+            Verde = !Verde;
+            gpio_put(led_GREEN, Verde);
             printf("Botao A pressionado!\n");
-            ssd1306_draw_string(&ssd, "Led verde: ", 10, 20); // Desenha uma string
-            ssd1306_draw_string(&ssd, &Verde, 106, 20);       // Desenha uma string
+            cor = !cor;
+            // Atualiza o conteúdo do display com animações
+            ssd1306_fill(&ssd, !cor);                     // Limpa o display
+            ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
+            ssd1306_draw_string(&ssd, &c, 60, 30);        // Desenha uma string
+            ssd1306_draw_string(&ssd, " ", 99, 30);       // Desenha uma string
+            ssd1306_draw_string(&ssd, "Led verde ", 10, 20); // Desenha uma string
+            if (Verde)
+            {
+                ssd1306_draw_string(&ssd, "ON", 82, 20); // Desenha uma string
+            }
+            else
+            {
+                ssd1306_draw_string(&ssd, "OFF", 82, 20); // Desenha uma string
+            }
             ssd1306_send_data(&ssd);
         }
         else if (gpio == botao_pinB)
@@ -220,7 +234,6 @@ int main()
 
     while (true)
     {
-        char c;
         if (stdio_usb_connected())
         { // Certifica-se de que o USB está conectado
             if (scanf("%c", &c) == 1)
@@ -231,7 +244,7 @@ int main()
                 ssd1306_fill(&ssd, !cor);                     // Limpa o display
                 ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
                 ssd1306_draw_string(&ssd, &c, 60, 30);        // Desenha uma string
-                ssd1306_draw_string(&ssd, " ", 98, 30);       // Desenha uma string
+                ssd1306_draw_string(&ssd, " ", 99, 30);       // Desenha uma string
                 ssd1306_send_data(&ssd);
                 switch (c)
                 {
