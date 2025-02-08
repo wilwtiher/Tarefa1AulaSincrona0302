@@ -12,13 +12,6 @@
 #define I2C_SCL 15
 #define endereco 0x3C
 
-// UART defines
-// By default the stdout UART is `uart0`, so we will use the second one
-#define UART_ID uart0    // Seleciona a UART0
-#define BAUD_RATE 115200 // Define a taxa de transmissão
-#define UART_TX_PIN 0    // Pino GPIO usado para TX
-#define UART_RX_PIN 1    // Pino GPIO usado para RX
-
 #define IS_RGBW false
 #define NUM_PIXELS 25
 #define WS2812_PIN 7
@@ -169,6 +162,7 @@ void gpio_irq_handler(uint gpio, uint32_t events)
 
 int main()
 {
+    stdio_init_all();                  // Inicializa comunicação USB CDC para monitor serial
     gpio_init(led_RED);                // Inicializa o pino do LED
     gpio_set_dir(led_RED, GPIO_OUT);   // Configura o pino como saída
     gpio_put(led_RED, 0);              // Inicialmente desligado
@@ -212,44 +206,10 @@ int main()
     ssd1306_fill(&ssd, false);
     ssd1306_send_data(&ssd);
 
-    // Inicializa a UART
-    uart_init(UART_ID, BAUD_RATE);
-    // Configura os pinos GPIO para a UART
-    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART); // Configura o pino 0 para TX
-    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART); // Configura o pino 1 para RX
-
-    // Use some the various UART functions to send out data
-    // In a default system, printf will also output via the default UART
-
-    // Mensagem inicial
-    const char *init_message = "UART Demo - RP2\r\n"
-                               "Digite algo e veja o eco:\r\n";
-    uart_puts(UART_ID, init_message);
-
     bool cor = true;
     while (true)
     {
         char c;
-        if (uart_is_readable(UART_ID))
-        {
-            // Lê caractere da entrada padrão
-            char c = uart_getc(UART_ID);
-            // Envia de volta o caractere lido (eco)
-            uart_putc(UART_ID, c);
-            cor = !cor;
-            // Atualiza o conteúdo do display com animações
-            ssd1306_fill(&ssd, !cor);                     // Limpa o display
-            ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
-            ssd1306_draw_string(&ssd, &c, 60, 30);        // Desenha uma string
-            ssd1306_send_data(&ssd);
-            if (c >= 0 && c <= 9)
-            {
-                contador = c;
-                set_one_led(led_r, led_g, led_b);
-            }
-            // Envia uma mensagem adicional para cada caractere recebido
-            uart_puts(UART_ID, " <- Eco do RP2\r\n");
-        }
         if (stdio_usb_connected())
         { // Certifica-se de que o USB está conectado
             if (scanf("%c", &c) == 1)
@@ -259,12 +219,36 @@ int main()
                 // Atualiza o conteúdo do display com animações
                 ssd1306_fill(&ssd, !cor);                     // Limpa o display
                 ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
-                ssd1306_draw_string(&ssd, &c, 20, 30);        // Desenha uma string
+                ssd1306_draw_char(&ssd, &c, 60, 30);        // Desenha um char
                 ssd1306_send_data(&ssd);
-                if (c >= 0 && c <= 9)
+                switch (c)
                 {
-                    contador = c;
+                case '1':
+                    contador = 1;
                     set_one_led(led_r, led_g, led_b);
+                    break;
+                case '2':
+                    contador = 2;
+                    set_one_led(led_r, led_g, led_b);
+                    break;
+                case '3':
+                    contador = 3;
+                    set_one_led(led_r, led_g, led_b);
+                    break;
+                case '4':
+                    contador = 4;
+                    set_one_led(led_r, led_g, led_b);
+                    break;
+                case '5':
+                    contador = 1;
+                    set_one_led(led_r, led_g, led_b);
+                    break;
+                case '6':
+                contador = 6;
+                    set_one_led(led_r, led_g, led_b);
+                    break;
+                default:
+                    break;
                 }
             }
         }

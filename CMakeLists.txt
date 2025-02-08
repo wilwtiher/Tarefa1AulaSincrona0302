@@ -41,7 +41,7 @@ pico_set_program_name(tarefa "tarefa")
 pico_set_program_version(tarefa "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(tarefa 1)
+pico_enable_stdio_uart(tarefa 0)
 pico_enable_stdio_usb(tarefa 1)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)
