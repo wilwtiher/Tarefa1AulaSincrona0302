@@ -21,8 +21,8 @@
 #define NUM_PIXELS 25
 #define WS2812_PIN 7
 #define led_RED 13   // Red=13, Blue=12, Green=11
-#define led_BLUE 12   // Red=13, Blue=12, Green=11
-#define led_GREEN 11   // Red=13, Blue=12, Green=11
+#define led_BLUE 12  // Red=13, Blue=12, Green=11
+#define led_GREEN 11 // Red=13, Blue=12, Green=11
 #define botao_pinA 5 // Botão A = 5, Botão B = 6 , BotãoJoy = 22
 #define botao_pinB 6 // Botão A = 5, Botão B = 6 , BotãoJoy = 22
 // Armazenar a cor (Entre 0 e 255 para intensidade)
@@ -34,8 +34,6 @@
 // Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
 #define UART_TX_PIN 4
 #define UART_RX_PIN 5
-
-
 
 // Variáveis globais
 static volatile uint32_t last_time = 0; // Armazena o tempo do último evento (em microssegundos)
@@ -69,7 +67,7 @@ void set_one_led(uint8_t r, uint8_t g, uint8_t b)
     // Define todos os LEDs com a cor especificada
     for (int i = 0; i < NUM_PIXELS; i++)
     {
-        if (led_buffer[0/*variavel do arrey do buffer*/][i])
+        if (led_buffer[0 /*variavel do arrey do buffer*/][i])
         {
             put_pixel(color); // Liga o LED com um no buffer
         }
@@ -91,11 +89,9 @@ void gpio_irq_handler(uint gpio, uint32_t events)
         last_time = current_time; // Atualiza o tempo do último evento
         if (gpio == botao_pinA)
         {
-            
         }
-        else
+        else if (gpio == botao_pinB)
         {
-            
         }
         set_one_led(led_r, led_g, led_b);
     }
@@ -105,10 +101,13 @@ int main()
 {
     gpio_init(led_RED);                // Inicializa o pino do LED
     gpio_set_dir(led_RED, GPIO_OUT);   // Configura o pino como saída
-    gpio_init(led_GREEN);                // Inicializa o pino do LED
-    gpio_set_dir(led_GREEN, GPIO_OUT);   // Configura o pino como saída
-    gpio_init(led_BLUE);                // Inicializa o pino do LED
-    gpio_set_dir(led_BLUE, GPIO_OUT);   // Configura o pino como saída
+    gpio_put(led_RED, 0);              // Inicialmente desligado
+    gpio_init(led_GREEN);              // Inicializa o pino do LED
+    gpio_set_dir(led_GREEN, GPIO_OUT); // Configura o pino como saída
+    gpio_put(led_GREEN, 0);            // Inicialmente desligado
+    gpio_init(led_BLUE);               // Inicializa o pino do LED
+    gpio_set_dir(led_BLUE, GPIO_OUT);  // Configura o pino como saída
+    gpio_put(led_BLUE, 0);             // Inicialmente desligado
     gpio_init(botao_pinA);             // Inicializa o botão
     gpio_set_dir(botao_pinA, GPIO_IN); // Configura o pino como entrada
     gpio_pull_up(botao_pinA);          // Habilita o pull-up interno
@@ -128,20 +127,20 @@ int main()
     gpio_set_irq_enabled_with_callback(botao_pinB, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
 
     // I2C Initialisation. Using it at 400Khz.
-  i2c_init(I2C_PORT, 400 * 1000);
+    i2c_init(I2C_PORT, 400 * 1000);
 
-  gpio_set_function(I2C_SDA, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
-  gpio_set_function(I2C_SCL, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
-  gpio_pull_up(I2C_SDA); // Pull up the data line
-  gpio_pull_up(I2C_SCL); // Pull up the clock line
-  ssd1306_t ssd; // Inicializa a estrutura do display
-  ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT); // Inicializa o display
-  ssd1306_config(&ssd); // Configura o display
-  ssd1306_send_data(&ssd); // Envia os dados para o display
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);                    // Set the GPIO pin function to I2C
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);                    // Set the GPIO pin function to I2C
+    gpio_pull_up(I2C_SDA);                                        // Pull up the data line
+    gpio_pull_up(I2C_SCL);                                        // Pull up the clock line
+    ssd1306_t ssd;                                                // Inicializa a estrutura do display
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT); // Inicializa o display
+    ssd1306_config(&ssd);                                         // Configura o display
+    ssd1306_send_data(&ssd);                                      // Envia os dados para o display
 
-  // Limpa o display. O display inicia com todos os pixels apagados.
-  ssd1306_fill(&ssd, false);
-  ssd1306_send_data(&ssd);
+    // Limpa o display. O display inicia com todos os pixels apagados.
+    ssd1306_fill(&ssd, false);
+    ssd1306_send_data(&ssd);
 
     // Set up our UART
     uart_init(UART_ID, BAUD_RATE);
@@ -149,17 +148,46 @@ int main()
     // Set datasheet for more information on function select
     gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-    
+
     // Use some the various UART functions to send out data
     // In a default system, printf will also output via the default UART
-    
+
     // Send out a string, with CR/LF conversions
     uart_puts(UART_ID, " Hello, UART!\n");
-    
+
     // For more examples of UART use see https://github.com/raspberrypi/pico-examples/tree/master/uart
 
-    while (true) {
-        printf("Hello, world!\n");
-        sleep_ms(1000);
+    while (true)
+    {
+        if (stdio_usb_connected())
+        { // Certifica-se de que o USB está conectado
+            char c;
+            if (scanf("%c", &c) == 1)
+            { // Lê caractere da entrada padrão
+                printf("Recebido: '%c'\n", c);
+
+                switch (c)
+                {
+                    // Caso o caractere recebido seja 'r' será lido o estado do led vermelho
+                    //  o o seu valor será invertido. Logo, se o led estiver aceso ele será apagado
+                    //  e se estiver apagado ele será aceso.
+                case 'r':
+                    gpio_put(led_RED, !gpio_get(led_RED));
+                    printf("LED vermelho alternado!\n");
+                    break;
+                case 'g':
+                    gpio_put(led_GREEN, !gpio_get(led_GREEN));
+                    printf("LED verde alternado!\n");
+                    break;
+                case 'b':
+                    gpio_put(led_BLUE, !gpio_get(led_BLUE));
+                    printf("LED azul alternado!\n");
+                    break;
+                default:
+                    printf("Comando inválido: '%c'\n", c);
+                }
+            }
+        }
+        sleep_ms(40);
     }
 }
