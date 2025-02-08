@@ -4,6 +4,8 @@
 #include "hardware/uart.h"
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
+#include "inc/ssd1306.h"
+#include "inc/font.h"
 #include "ws2812.pio.h"
 #define I2C_PORT i2c1
 #define I2C_SDA 14
@@ -126,13 +128,20 @@ int main()
     gpio_set_irq_enabled_with_callback(botao_pinB, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
 
     // I2C Initialisation. Using it at 400Khz.
-    i2c_init(I2C_PORT, 400*1000);
-    
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(I2C_SDA);
-    gpio_pull_up(I2C_SCL);
-    // For more examples of I2C use see https://github.com/raspberrypi/pico-examples/tree/master/i2c
+  i2c_init(I2C_PORT, 400 * 1000);
+
+  gpio_set_function(I2C_SDA, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
+  gpio_set_function(I2C_SCL, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
+  gpio_pull_up(I2C_SDA); // Pull up the data line
+  gpio_pull_up(I2C_SCL); // Pull up the clock line
+  ssd1306_t ssd; // Inicializa a estrutura do display
+  ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT); // Inicializa o display
+  ssd1306_config(&ssd); // Configura o display
+  ssd1306_send_data(&ssd); // Envia os dados para o display
+
+  // Limpa o display. O display inicia com todos os pixels apagados.
+  ssd1306_fill(&ssd, false);
+  ssd1306_send_data(&ssd);
 
     // Set up our UART
     uart_init(UART_ID, BAUD_RATE);
