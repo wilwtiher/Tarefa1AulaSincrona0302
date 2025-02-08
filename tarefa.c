@@ -18,7 +18,9 @@
 #define IS_RGBW false
 #define NUM_PIXELS 25
 #define WS2812_PIN 7
-#define led_pin 13   // Red=13, Blue=12, Green=11
+#define led_RED 13   // Red=13, Blue=12, Green=11
+#define led_BLUE 12   // Red=13, Blue=12, Green=11
+#define led_GREEN 11   // Red=13, Blue=12, Green=11
 #define botao_pinA 5 // Botão A = 5, Botão B = 6 , BotãoJoy = 22
 #define botao_pinB 6 // Botão A = 5, Botão B = 6 , BotãoJoy = 22
 // Armazenar a cor (Entre 0 e 255 para intensidade)
@@ -79,8 +81,12 @@ void set_one_led(uint8_t r, uint8_t g, uint8_t b)
 
 int main()
 {
-    gpio_init(led_pin);                // Inicializa o pino do LED
-    gpio_set_dir(led_pin, GPIO_OUT);   // Configura o pino como saída
+    gpio_init(led_RED);                // Inicializa o pino do LED
+    gpio_set_dir(led_RED, GPIO_OUT);   // Configura o pino como saída
+    gpio_init(led_GREEN);                // Inicializa o pino do LED
+    gpio_set_dir(led_GREEN, GPIO_OUT);   // Configura o pino como saída
+    gpio_init(led_BLUE);                // Inicializa o pino do LED
+    gpio_set_dir(led_BLUE, GPIO_OUT);   // Configura o pino como saída
     gpio_init(botao_pinA);             // Inicializa o botão
     gpio_set_dir(botao_pinA, GPIO_IN); // Configura o pino como entrada
     gpio_pull_up(botao_pinA);          // Habilita o pull-up interno
