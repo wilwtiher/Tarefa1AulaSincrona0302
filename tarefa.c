@@ -156,12 +156,22 @@ int main()
     uart_puts(UART_ID, " Hello, UART!\n");
 
     // For more examples of UART use see https://github.com/raspberrypi/pico-examples/tree/master/uart
-
+    bool cor = true;
     while (true)
     {
         if (stdio_usb_connected())
         { // Certifica-se de que o USB está conectado
             char c;
+            cor = !cor;
+            // Atualiza o conteúdo do display com animações
+            ssd1306_fill(&ssd, !cor);                           // Limpa o display
+            ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor);       // Desenha um retângulo
+            ssd1306_draw_string(&ssd, "CEPEDI   TIC37", 8, 10); // Desenha uma string
+            ssd1306_draw_string(&ssd, "EMBARCATECH", 20, 30);   // Desenha uma string
+            ssd1306_draw_string(&ssd, "PROF WILTON", 15, 48);   // Desenha uma string
+            ssd1306_send_data(&ssd);                            // Atualiza o display
+
+            sleep_ms(1000);
             if (scanf("%c", &c) == 1)
             { // Lê caractere da entrada padrão
                 printf("Recebido: '%c'\n", c);
