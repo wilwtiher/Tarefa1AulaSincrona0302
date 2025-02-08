@@ -14,8 +14,10 @@
 
 // UART defines
 // By default the stdout UART is `uart0`, so we will use the second one
-#define UART_ID uart1
-#define BAUD_RATE 115200
+#define UART_ID uart0    // Seleciona a UART0
+#define BAUD_RATE 115200 // Define a taxa de transmissão
+#define UART_TX_PIN 0    // Pino GPIO usado para TX
+#define UART_RX_PIN 1    // Pino GPIO usado para RX
 
 #define IS_RGBW false
 #define NUM_PIXELS 25
@@ -29,11 +31,6 @@
 #define led_r 5 // Intensidade do vermelho
 #define led_g 5 // Intensidade do verde
 #define led_b 5 // Intensidade do azul
-
-// Use pins 4 and 5 for UART1
-// Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
-#define UART_TX_PIN 4
-#define UART_RX_PIN 5
 
 // Variáveis globais
 static volatile uint32_t last_time = 0; // Armazena o tempo do último evento (em microssegundos)
@@ -215,59 +212,57 @@ int main()
     ssd1306_fill(&ssd, false);
     ssd1306_send_data(&ssd);
 
-    // Set up our UART
+    // Inicializa a UART
     uart_init(UART_ID, BAUD_RATE);
-    // Set the TX and RX pins by using the function select on the GPIO
-    // Set datasheet for more information on function select
-    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+    // Configura os pinos GPIO para a UART
+    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART); // Configura o pino 0 para TX
+    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART); // Configura o pino 1 para RX
 
     // Use some the various UART functions to send out data
     // In a default system, printf will also output via the default UART
 
-    // Send out a string, with CR/LF conversions
-    uart_puts(UART_ID, " Hello, UART!\n");
+    // Mensagem inicial
+    const char *init_message = "UART Demo - RP2\r\n"
+                               "Digite algo e veja o eco:\r\n";
+    uart_puts(UART_ID, init_message);
 
-    // For more examples of UART use see https://github.com/raspberrypi/pico-examples/tree/master/uart
     bool cor = true;
     while (true)
     {
         char c;
         if (stdio_usb_connected())
         { // Certifica-se de que o USB está conectado
-
+            if (uart_is_readable(UART_ID))
+            {
+                // Lê caractere da entrada padrão
+                char c = uart_getc(UART_ID);
+                cor = !cor;
+                // Atualiza o conteúdo do display com animações
+                ssd1306_fill(&ssd, !cor);                     // Limpa o display
+                ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
+                ssd1306_draw_string(&ssd, &c, 20, 30);        // Desenha uma string
+                ssd1306_send_data(&ssd);
+                if (c >= 0 && c <= 9)
+                {
+                    contador = c;
+                    set_one_led(led_r, led_g, led_b);
+                }
+                // Envia de volta o caractere lido (eco)
+                uart_putc(UART_ID, c);
+            }
             if (scanf("%c", &c) == 1)
             { // Lê caractere da entrada padrão
                 printf("Recebido: '%c'\n", c);
                 cor = !cor;
                 // Atualiza o conteúdo do display com animações
-                ssd1306_fill(&ssd, !cor);                           // Limpa o display
-                ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor);       // Desenha um retângulo
-                ssd1306_draw_string(&ssd, &c, 20, 30);  // Desenha uma string
+                ssd1306_fill(&ssd, !cor);                     // Limpa o display
+                ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
+                ssd1306_draw_string(&ssd, &c, 20, 30);        // Desenha uma string
                 ssd1306_send_data(&ssd);
-                if(c >= 0 && c <= 9){
+                if (c >= 0 && c <= 9)
+                {
                     contador = c;
                     set_one_led(led_r, led_g, led_b);
-                }
-                switch (c)
-                {
-                    // Caso o caractere recebido seja 'r' será lido o estado do led vermelho
-                    //  o o seu valor será invertido. Logo, se o led estiver aceso ele será apagado
-                    //  e se estiver apagado ele será aceso.
-                case 'r':
-                    gpio_put(led_RED, !gpio_get(led_RED));
-                    printf("LED vermelho alternado!\n");
-                    break;
-                case 'g':
-                    gpio_put(led_GREEN, !gpio_get(led_GREEN));
-                    printf("LED verde alternado!\n");
-                    break;
-                case 'b':
-                    gpio_put(led_BLUE, !gpio_get(led_BLUE));
-                    printf("LED azul alternado!\n");
-                    break;
-                default:
-                    printf("Comando inválido: '%c'\n", c);
                 }
             }
         }
