@@ -230,26 +230,28 @@ int main()
     while (true)
     {
         char c;
+        if (uart_is_readable(UART_ID))
+        {
+            // Lê caractere da entrada padrão
+            char c = uart_getc(UART_ID);
+            // Envia de volta o caractere lido (eco)
+            uart_putc(UART_ID, c);
+            cor = !cor;
+            // Atualiza o conteúdo do display com animações
+            ssd1306_fill(&ssd, !cor);                     // Limpa o display
+            ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
+            ssd1306_draw_string(&ssd, &c, 60, 30);        // Desenha uma string
+            ssd1306_send_data(&ssd);
+            if (c >= 0 && c <= 9)
+            {
+                contador = c;
+                set_one_led(led_r, led_g, led_b);
+            }
+            // Envia uma mensagem adicional para cada caractere recebido
+            uart_puts(UART_ID, " <- Eco do RP2\r\n");
+        }
         if (stdio_usb_connected())
         { // Certifica-se de que o USB está conectado
-            if (uart_is_readable(UART_ID))
-            {
-                // Lê caractere da entrada padrão
-                char c = uart_getc(UART_ID);
-                cor = !cor;
-                // Atualiza o conteúdo do display com animações
-                ssd1306_fill(&ssd, !cor);                     // Limpa o display
-                ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
-                ssd1306_draw_string(&ssd, &c, 20, 30);        // Desenha uma string
-                ssd1306_send_data(&ssd);
-                if (c >= 0 && c <= 9)
-                {
-                    contador = c;
-                    set_one_led(led_r, led_g, led_b);
-                }
-                // Envia de volta o caractere lido (eco)
-                uart_putc(UART_ID, c);
-            }
             if (scanf("%c", &c) == 1)
             { // Lê caractere da entrada padrão
                 printf("Recebido: '%c'\n", c);
