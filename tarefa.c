@@ -2,18 +2,29 @@
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
 #include "hardware/uart.h"
-
-// I2C defines
-// This example will use I2C0 on GPIO8 (SDA) and GPIO9 (SCL) running at 400KHz.
-// Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
-#define I2C_PORT i2c0
-#define I2C_SDA 8
-#define I2C_SCL 9
+#include "hardware/pio.h"
+#include "hardware/clocks.h"
+#include "ws2812.pio.h"
+#define I2C_PORT i2c1
+#define I2C_SDA 14
+#define I2C_SCL 15
+#define endereco 0x3C
 
 // UART defines
 // By default the stdout UART is `uart0`, so we will use the second one
 #define UART_ID uart1
 #define BAUD_RATE 115200
+
+#define IS_RGBW false
+#define NUM_PIXELS 25
+#define WS2812_PIN 7
+#define led_pin 13   // Red=13, Blue=12, Green=11
+#define botao_pinA 5 // Botão A = 5, Botão B = 6 , BotãoJoy = 22
+#define botao_pinB 6 // Botão A = 5, Botão B = 6 , BotãoJoy = 22
+// Armazenar a cor (Entre 0 e 255 para intensidade)
+#define led_r 5 // Intensidade do vermelho
+#define led_g 5 // Intensidade do verde
+#define led_b 5 // Intensidade do azul
 
 // Use pins 4 and 5 for UART1
 // Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
@@ -22,9 +33,67 @@
 
 
 
+// Variáveis globais
+static volatile uint32_t last_time = 0; // Armazena o tempo do último evento (em microssegundos)
+static volatile int contador = 0;
+
+bool led_buffer[1][NUM_PIXELS] = {
+    {
+        // 0 invertido verticalmente:
+        // Nova ordem: linha4, linha3, linha2, linha1, linha0
+        0, 1, 1, 1, 0, // antiga linha4
+        1, 0, 0, 0, 1, // antiga linha3
+        1, 0, 0, 0, 1, // antiga linha2
+        1, 0, 0, 0, 1, // antiga linha1
+        0, 1, 1, 1, 0  // antiga linha0
+    }};
+
+static inline void put_pixel(uint32_t pixel_grb)
+{
+    pio_sm_put_blocking(pio0, 0, pixel_grb << 8u);
+}
+
+static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b)
+{
+    return ((uint32_t)(r) << 8) | ((uint32_t)(g) << 16) | (uint32_t)(b);
+}
+
+void set_one_led(uint8_t r, uint8_t g, uint8_t b)
+{
+    // Define a cor com base nos parâmetros fornecidos
+    uint32_t color = urgb_u32(r, g, b);
+
+    // Define todos os LEDs com a cor especificada
+    for (int i = 0; i < NUM_PIXELS; i++)
+    {
+        if (led_buffer[contador][i])
+        {
+            put_pixel(color); // Liga o LED com um no buffer
+        }
+        else
+        {
+            put_pixel(0); // Desliga os LEDs com zero no buffer
+        }
+    }
+}
+
 int main()
 {
-    stdio_init_all();
+    gpio_init(led_pin);                // Inicializa o pino do LED
+    gpio_set_dir(led_pin, GPIO_OUT);   // Configura o pino como saída
+    gpio_init(botao_pinA);             // Inicializa o botão
+    gpio_set_dir(botao_pinA, GPIO_IN); // Configura o pino como entrada
+    gpio_pull_up(botao_pinA);          // Habilita o pull-up interno
+    gpio_init(botao_pinB);             // Inicializa o botão
+    gpio_set_dir(botao_pinB, GPIO_IN); // Configura o pino como entrada
+    gpio_pull_up(botao_pinB);          // Habilita o pull-up interno
+
+    // configuracao do PIO
+    PIO pio = pio0;
+    int sm = 0;
+    uint offset = pio_add_program(pio, &ws2812_program);
+
+    ws2812_program_init(pio, sm, offset, WS2812_PIN, 800000, IS_RGBW);
 
     // I2C Initialisation. Using it at 400Khz.
     i2c_init(I2C_PORT, 400*1000);
