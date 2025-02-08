@@ -219,7 +219,8 @@ int main()
                 // Atualiza o conteúdo do display com animações
                 ssd1306_fill(&ssd, !cor);                     // Limpa o display
                 ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
-                ssd1306_draw_char(&ssd, &c, 60, 30);          // Desenha um char
+                ssd1306_draw_string(&ssd, &c, 60, 30);          // Desenha uma string
+                ssd1306_draw_string(&ssd, " ", 98, 30);          // Desenha uma string
                 ssd1306_send_data(&ssd);
                 switch (c)
                 {
@@ -240,7 +241,7 @@ int main()
                     set_one_led(led_r, led_g, led_b);
                     break;
                 case '5':
-                    contador = 1;
+                    contador = 5;
                     set_one_led(led_r, led_g, led_b);
                     break;
                 case '6':
