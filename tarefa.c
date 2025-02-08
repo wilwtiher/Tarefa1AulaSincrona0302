@@ -171,16 +171,35 @@ void gpio_irq_handler(uint gpio, uint32_t events)
             ssd1306_draw_string(&ssd, "Led verde ", 10, 20); // Desenha uma string
             if (Verde)
             {
-                ssd1306_draw_string(&ssd, "ON", 82, 20); // Desenha uma string
+                ssd1306_draw_string(&ssd, "ON", 90, 20); // Desenha uma string
             }
             else
             {
-                ssd1306_draw_string(&ssd, "OFF", 82, 20); // Desenha uma string
+                ssd1306_draw_string(&ssd, "OFF", 90, 20); // Desenha uma string
             }
             ssd1306_send_data(&ssd);
         }
         else if (gpio == botao_pinB)
         {
+            Azul = !Azul;
+            gpio_put(led_BLUE, Azul);
+            printf("Botao B pressionado!\n");
+            cor = !cor;
+            // Atualiza o conteúdo do display com animações
+            ssd1306_fill(&ssd, !cor);                     // Limpa o display
+            ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
+            ssd1306_draw_string(&ssd, &c, 60, 30);        // Desenha uma string
+            ssd1306_draw_string(&ssd, " ", 99, 30);       // Desenha uma string
+            ssd1306_draw_string(&ssd, "Led azul ", 10, 20); // Desenha uma string
+            if (Azul)
+            {
+                ssd1306_draw_string(&ssd, "ON", 90, 20); // Desenha uma string
+            }
+            else
+            {
+                ssd1306_draw_string(&ssd, "OFF", 90, 20); // Desenha uma string
+            }
+            ssd1306_send_data(&ssd);
         }
         set_one_led(led_r, led_g, led_b);
     }
