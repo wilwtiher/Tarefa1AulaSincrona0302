@@ -37,7 +37,6 @@
 
 // Variáveis globais
 static volatile uint32_t last_time = 0; // Armazena o tempo do último evento (em microssegundos)
-static volatile int contador = 0;
 
 bool led_buffer[1][NUM_PIXELS] = {
     {
@@ -68,7 +67,7 @@ void set_one_led(uint8_t r, uint8_t g, uint8_t b)
     // Define todos os LEDs com a cor especificada
     for (int i = 0; i < NUM_PIXELS; i++)
     {
-        if (led_buffer[contador][i])
+        if (led_buffer[0/*variavel do arrey do buffer*/][i])
         {
             put_pixel(color); // Liga o LED com um no buffer
         }
@@ -76,6 +75,27 @@ void set_one_led(uint8_t r, uint8_t g, uint8_t b)
         {
             put_pixel(0); // Desliga os LEDs com zero no buffer
         }
+    }
+}
+
+// Funcao da interrupcao
+void gpio_irq_handler(uint gpio, uint32_t events)
+{
+    // Obtém o tempo atual em microssegundos
+    uint32_t current_time = to_us_since_boot(get_absolute_time());
+    // Verifica se passou tempo suficiente desde o último evento
+    if (current_time - last_time > 200000) // 200 ms de debouncing
+    {
+        last_time = current_time; // Atualiza o tempo do último evento
+        if (gpio == botao_pinA)
+        {
+            
+        }
+        else
+        {
+            
+        }
+        set_one_led(led_r, led_g, led_b);
     }
 }
 
@@ -100,6 +120,10 @@ int main()
     uint offset = pio_add_program(pio, &ws2812_program);
 
     ws2812_program_init(pio, sm, offset, WS2812_PIN, 800000, IS_RGBW);
+
+    // Configuração da interrupção com callback
+    gpio_set_irq_enabled_with_callback(botao_pinA, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
+    gpio_set_irq_enabled_with_callback(botao_pinB, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
 
     // I2C Initialisation. Using it at 400Khz.
     i2c_init(I2C_PORT, 400*1000);
