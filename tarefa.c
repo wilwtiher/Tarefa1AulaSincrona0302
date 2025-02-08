@@ -38,13 +38,85 @@
 // Variáveis globais
 static volatile uint32_t last_time = 0; // Armazena o tempo do último evento (em microssegundos)
 
-bool led_buffer[1][NUM_PIXELS] = {
+bool led_buffer[10][NUM_PIXELS] = {
     {
         // 0 invertido verticalmente:
         // Nova ordem: linha4, linha3, linha2, linha1, linha0
         0, 1, 1, 1, 0, // antiga linha4
         1, 0, 0, 0, 1, // antiga linha3
         1, 0, 0, 0, 1, // antiga linha2
+        1, 0, 0, 0, 1, // antiga linha1
+        0, 1, 1, 1, 0  // antiga linha0
+    },
+    {
+        // 1 invertido verticalmente:
+        0, 1, 1, 1, 0, // antiga linha4
+        0, 0, 1, 0, 0, // antiga linha3
+        0, 0, 1, 0, 0, // antiga linha2
+        0, 1, 1, 0, 0, // antiga linha1
+        0, 0, 1, 0, 0  // antiga linha0
+    },
+    {
+        // 2 invertido verticalmente:
+        1, 1, 1, 1, 1, // antiga linha4
+        1, 0, 0, 0, 0, // antiga linha3
+        0, 1, 1, 1, 0, // antiga linha2
+        0, 0, 0, 0, 1, // antiga linha1
+        1, 1, 1, 1, 1  // antiga linha0
+    },
+    {
+        // 3 invertido verticalmente:
+        1, 1, 1, 1, 1, // antiga linha4
+        0, 0, 0, 0, 1, // antiga linha3
+        1, 1, 1, 0, 0, // antiga linha2
+        0, 0, 0, 0, 1, // antiga linha1
+        1, 1, 1, 1, 1  // antiga linha0
+    },
+    {
+        // 4 invertido verticalmente:
+        0, 0, 1, 0, 0, // antiga linha4
+        1, 1, 1, 1, 1, // antiga linha3
+        0, 0, 1, 0, 1, // antiga linha2
+        0, 1, 1, 0, 0, // antiga linha1
+        0, 0, 1, 0, 0  // antiga linha0
+    },
+    {
+        // 5 invertido verticalmente:
+        0, 0, 1, 1, 1, // antiga linha4
+        0, 0, 0, 1, 0, // antiga linha3
+        0, 0, 1, 1, 1, // antiga linha2
+        1, 0, 0, 0, 0, // antiga linha1
+        1, 1, 1, 1, 1  // antiga linha0
+    },
+    {
+        // 6 invertido verticalmente:
+        0, 0, 1, 1, 0, // antiga linha4
+        1, 0, 0, 1, 0, // antiga linha3
+        0, 0, 1, 1, 1, // antiga linha2
+        1, 0, 0, 0, 0, // antiga linha1
+        0, 1, 1, 1, 0  // antiga linha0
+    },
+    {
+        // 7 invertido verticalmente:
+        0, 0, 0, 0, 1, // antiga linha4
+        0, 1, 0, 0, 0, // antiga linha3
+        0, 0, 1, 0, 0, // antiga linha2
+        0, 0, 0, 1, 0, // antiga linha1
+        1, 1, 1, 1, 1  // antiga linha0
+    },
+    {
+        // 8 invertido verticalmente:
+        0, 1, 1, 1, 0, // antiga linha4
+        1, 0, 0, 0, 1, // antiga linha3
+        0, 1, 1, 1, 0, // antiga linha2
+        1, 0, 0, 0, 1, // antiga linha1
+        0, 1, 1, 1, 0  // antiga linha0
+    },
+    {
+        // 9 invertido verticalmente:
+        0, 1, 1, 1, 0, // antiga linha4
+        0, 0, 0, 0, 1, // antiga linha3
+        1, 1, 1, 1, 0, // antiga linha2
         1, 0, 0, 0, 1, // antiga linha1
         0, 1, 1, 1, 0  // antiga linha0
     }};
